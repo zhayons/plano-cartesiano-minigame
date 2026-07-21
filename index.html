@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Impressora 3D: Missão Coordenadas</title>
+<style>
+  :root{
+    --bg: #170f2e;
+    --bg-alt: #1f1546;
+    --panel: #2a1c5c;
+    --panel-border: #4a3a8c;
+    --text-light: #f5f0ff;
+    --text-dim: #c9bfe8;
+    --cyan: #38e1e6;
+    --cyan-dark: #1a8a8f;
+    --magenta: #ff4d9d;
+    --magenta-dark: #a12665;
+    --yellow: #ffd23f;
+    --yellow-dark: #b8891a;
+    --orange: #ff8c1a;
+    --green: #52e07a;
+    --green-dark: #2c9a52;
+    --cell-a: #efe9ff;
+    --cell-b: #ddd2f7;
+    --filled: #100b1c;
+    --template: rgba(255, 77, 157, 0.28);
+    --board-size: min(58vmin, 560px);
+    --cell-gap: 3px;
+    --axis-size: 30px;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background: radial-gradient(circle at 20% 15%, var(--bg-alt) 0%, var(--bg) 55%);
+    color: var(--text-light);
+    font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+
+  body{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding: 18px 14px 40px;
+  }
+
+  /* ---------- Cabecalho ---------- */
+  header{
+    text-align:center;
+    max-width: 900px;
+    margin-bottom: 14px;
+  }
+
+  h1{
+    font-family: 'Courier New', monospace;
+    font-weight: 900;
+    letter-spacing: 2px;
+    font-size: clamp(1.3rem, 3.4vmin, 2.2rem);
+    color: var(--yellow);
+    text-shadow: 3px 3px 0 var(--magenta-dark), 6px 6px 0 rgba(0,0,0,0.35);
+    margin: 4px 0 8px;
+  }
+
+  .subtitle{
+    font-size: clamp(0.85rem, 2vmin, 1.05rem);
+    color: var(--text-dim);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* ---------- Layout principal ---------- */
+  main.game-container{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 26px;
+    justify-content:center;
+    align-items:flex-start;
+    width:100%;
+    max-width: 1180px;
+  }
+
+  section.board-area{
+    display:flex;
+    justify-content:center;
+    flex: 0 1 auto;
+  }
+
+  /* ---------- Tabuleiro + eixos ---------- */
+  .board-grid-wrapper{
+    display:grid;
+    grid-template-columns: var(--axis-size) var(--board-size);
+    grid-template-rows: var(--board-size) var(--axis-size);
+    gap: 6px;
+  }
+
+  .y-labels{
+    grid-column: 1;
+    grid-row: 1;
+    display:grid;
+    grid-template-rows: repeat(12, 1fr);
+    gap: var(--cell-gap);
+  }
+
+  .x-labels{
+    grid-column: 2;
+    grid-row: 2;
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--cell-gap);
+  }
+
+  .corner{ grid-column:1; grid-row:2; }
+
+  .axis-label{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: var(--cyan);
+    font-size: clamp(0.6rem, 1.5vmin, 0.95rem);
+  }
+
+  .grid{
+    grid-column: 2;
+    grid-row: 1;
+    display:grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    gap: var(--cell-gap);
+    width:100%;
+    height:100%;
+    background: var(--bg-alt);
+    padding: 6px;
+    border-radius: 8px;
+    border: 3px solid var(--panel-border);
+  }
+
+  .cell{
+    position:relative;
+    border-radius: 2px;
+    background: var(--cell-a);
+  }
+  .cell.odd{ background: var(--cell-b); }
+  .cell.template{ background: var(--template); }
+  .cell.filled{ background: var(--filled); }
+
+  .cell.cursor{
+    outline: 4px solid var(--orange);
+    outline-offset: -4px;
+    z-index: 2;
+    animation: pulse-nozzle 0.7s infinite ease-in-out;
+  }
+
+  @keyframes pulse-nozzle{
+    0%, 100%{ box-shadow: 0 0 6px 3px rgba(255,140,26,0.9); outline-color: var(--orange); }
+    50%{ box-shadow: 0 0 14px 7px rgba(255,140,26,0.35); outline-color: #ffd9a3; }
+  }
+
+  /* ---------- Painel lateral ---------- */
+  aside.info-panel{
+    flex: 1 1 320px;
+    max-width: 380px;
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+  }
+
+  .card{
+    background: var(--panel);
+    border: 3px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+
+  .position-display{
+    text-align:center;
+  }
+  .position-display p{
+    margin: 0 0 6px;
+    font-size: clamp(0.85rem, 2vmin, 1rem);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .coords{
+    display:flex;
+    justify-content:center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .coords span{
+    font-family:'Courier New', monospace;
+    font-size: clamp(1.3rem, 4vmin, 2rem);
+    font-weight: 900;
+  }
+  .coord-x{ color: var(--cyan); }
+  .coord-y{ color: var(--magenta); }
+
+  .controls{
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+  }
+  .control-card{
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 3px solid;
+  }
+  .control-card h3{
+    margin: 0 0 6px;
+    font-size: clamp(0.85rem, 2vmin, 1rem);
+  }
+  .control-card p{
+    margin: 3px 0;
+    font-size: clamp(0.78rem, 1.8vmin, 0.92rem);
+    color: var(--text-light);
+  }
+  .player1{ border-color: var(--cyan); background: rgba(56,225,230,0.08); }
+  .player1 h3{ color: var(--cyan); }
+  .player2{ border-color: var(--magenta); background: rgba(255,77,157,0.08); }
+  .player2 h3{ color: var(--magenta); }
+  .extrude{ border-color: var(--orange); background: rgba(255,140,26,0.08); }
+  .extrude h3{ color: var(--orange); }
+
+  kbd{
+    display:inline-block;
+    background: linear-gradient(#ffffff, #d8d2ea);
+    color: #241a4d;
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-family: 'Courier New', monospace;
+    font-weight: 800;
+    font-size: 0.85em;
+    box-shadow: 0 2px 0 #9a8fc4;
+    border: 1px solid #b6a9de;
+  }
+
+  .legend{
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+    font-size: clamp(0.78rem, 1.8vmin, 0.9rem);
+  }
+  .legend p{ margin:0; display:flex; align-items:center; gap:8px; }
+  .swatch{
+    display:inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 3px;
+    flex-shrink:0;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .swatch-template{ background: var(--template); }
+  .swatch-filled{ background: var(--filled); }
+  .swatch-cursor{ background: var(--orange); box-shadow: 0 0 6px 2px rgba(255,140,26,0.8); }
+
+  #progressText{
+    text-align:center;
+    font-weight: 700;
+    color: var(--yellow);
+    font-size: clamp(0.85rem, 2vmin, 1rem);
+  }
+
+  .buttons{
+    display:flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content:center;
+  }
+
+  button{
+    font-family: inherit;
+    font-weight: 800;
+    font-size: clamp(0.8rem, 1.9vmin, 0.98rem);
+    padding: 11px 18px;
+    border:none;
+    border-radius: 7px;
+    cursor: pointer;
+    color: #1b1035;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.35);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  button:active{ transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+  #checkBtn{ background: var(--yellow); box-shadow: 0 4px 0 var(--yellow-dark); }
+  #resetBtn{ background: var(--cyan); box-shadow: 0 4px 0 var(--cyan-dark); }
+  #playAgainBtn{ background: var(--green); box-shadow: 0 4px 0 var(--green-dark); font-size: clamp(0.9rem, 2vmin, 1.05rem); }
+
+  @keyframes shake{
+    0%, 100%{ transform: translateX(0); }
+    20%{ transform: translateX(-6px); }
+    40%{ transform: translateX(6px); }
+    60%{ transform: translateX(-4px); }
+    80%{ transform: translateX(4px); }
+  }
+  .shake{ animation: shake 0.4s ease; }
+
+  /* ---------- Tela de vitoria ---------- */
+  .win-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(10,5,25,0.86);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+    overflow: hidden;
+  }
+  .win-overlay.active{ opacity: 1; pointer-events: auto; }
+
+  .win-box{
+    position: relative;
+    z-index: 2;
+    background: var(--panel);
+    border: 4px solid var(--yellow);
+    border-radius: 16px;
+    padding: 34px 38px;
+    text-align:center;
+    max-width: 92vw;
+    box-shadow: 0 0 46px rgba(255,210,63,0.55);
+    animation: pop-in 0.4s ease;
+  }
+  @keyframes pop-in{
+    from{ transform: scale(0.5); opacity: 0; }
+    to{ transform: scale(1); opacity: 1; }
+  }
+  .win-box h2{
+    color: var(--yellow);
+    font-size: clamp(1.15rem, 3.4vmin, 1.9rem);
+    text-shadow: 2px 2px 0 var(--magenta-dark);
+    margin: 0 0 12px;
+    font-family: 'Courier New', monospace;
+  }
+  .win-box p{
+    color: var(--text-light);
+    margin: 0 0 22px;
+    font-size: clamp(0.9rem, 2vmin, 1.05rem);
+  }
+
+  .confetti{
+    position:absolute;
+    top: -12px;
+    width: 10px;
+    height: 10px;
+    opacity: 0.9;
+    animation-name: confetti-fall;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+  @keyframes confetti-fall{
+    to{ transform: translateY(110vh) rotate(var(--rot, 360deg)); opacity: 0.25; }
+  }
+
+  footer{
+    margin-top: 22px;
+    max-width: 700px;
+    text-align:center;
+    color: var(--text-dim);
+    font-size: clamp(0.72rem, 1.6vmin, 0.85rem);
+    line-height: 1.5;
+  }
+
+  @media (max-width: 680px){
+    :root{ --board-size: min(82vw, 420px); --axis-size: 24px; }
+    main.game-container{ flex-direction: column; align-items:center; }
+    aside.info-panel{ max-width: 92vw; width:100%; }
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <h1>🖨️ Impressora 3D: Missão Coordenadas</h1>
+    <p class="subtitle">
+      Dois motores, uma missão! Jogador 1 controla o Motor X, Jogador 2 controla o Motor Y.
+      Trabalhem em equipe para levar o bico até cada quadradinho do desenho e apertar
+      <kbd>ENTER</kbd> para depositar o filamento.
+    </p>
+  </header>
+
+  <main class="game-container">
+    <section class="board-area">
+      <div class="board-grid-wrapper">
+        <div class="y-labels" id="yLabels"></div>
+        <div class="grid" id="grid"></div>
+        <div class="corner"></div>
+        <div class="x-labels" id="xLabels"></div>
+      </div>
+    </section>
+
+    <aside class="info-panel">
+      <div class="card position-display">
+        <p>Posição do Bico</p>
+        <div class="coords">
+          <span class="coord-x">X = <b id="xVal">0</b></span>
+          <span class="coord-y">Y = <b id="yVal">0</b></span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-card player1">
+          <h3>🔵 Motor X — Jogador 1</h3>
+          <p><kbd>A</kbd> / <kbd>←</kbd> mover para a esquerda</p>
+          <p><kbd>D</kbd> / <kbd>→</kbd> mover para a direita</p>
+        </div>
+        <div class="control-card player2">
+          <h3>🟣 Motor Y — Jogador 2</h3>
+          <p><kbd>W</kbd> / <kbd>↑</kbd> mover para cima</p>
+          <p><kbd>S</kbd> / <kbd>↓</kbd> mover para baixo</p>
+        </div>
+        <div class="control-card extrude">
+          <h3>🟠 Extrusora</h3>
+          <p><kbd>ENTER</kbd> ou <kbd>ESPAÇO</kbd> deposita ou apaga o filamento</p>
+        </div>
+      </div>
+
+      <div class="card legend">
+        <p><span class="swatch swatch-template"></span> Molde do desenho a seguir</p>
+        <p><span class="swatch swatch-filled"></span> Filamento já depositado</p>
+        <p><span class="swatch swatch-cursor"></span> Bico da impressora (aquecendo)</p>
+      </div>
+
+      <p id="progressText">Progresso: 0/0 células corretas</p>
+
+      <div class="buttons">
+        <button id="checkBtn">✅ Verificar Impressão</button>
+        <button id="resetBtn">🔄 Reiniciar</button>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    Dica para a turma: cada tecla pressionada é como um pulso do motor — um passo de cada vez.
+    Combinem os movimentos para não desperdiçar filamento fora do molde!
+  </footer>
+
+  <div class="win-overlay" id="winOverlay">
+    <div class="win-box">
+      <h2>Impressão Concluída com Sucesso! 🖨️✨</h2>
+      <p>Parabéns, equipe! Vocês dominaram os eixos X e Y da impressora 3D!</p>
+      <button id="playAgainBtn">🔁 Imprimir Outra Peça</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  var GRID_SIZE = 12;
+
+  // Gabarito em pixel art: um coração. 1 = parte do desenho, 0 = vazio.
+  // Indexado por [y][x], onde y = 0 é a linha de baixo da grade.
+  var TEMPLATE = [
+    [0,0,0,0,0,0,0,0,0,0,0,0], // y=0
+    [0,0,0,0,0,0,0,0,0,0,0,0], // y=1
+    [0,0,0,0,0,1,1,0,0,0,0,0], // y=2  (ponta do coracao)
+    [0,0,0,0,1,1,1,1,0,0,0,0], // y=3
+    [0,0,0,1,1,1,1,1,1,0,0,0], // y=4
+    [0,0,1,1,1,1,1,1,1,1,0,0], // y=5
+    [0,1,1,1,1,1,1,1,1,1,1,0], // y=6
+    [0,1,1,1,1,1,1,1,1,1,1,0], // y=7
+    [0,1,1,1,1,0,0,1,1,1,1,0], // y=8  (comeca a abertura de cima)
+    [0,0,1,1,0,0,0,0,1,1,0,0], // y=9  (as duas "corcovas")
+    [0,0,0,0,0,0,0,0,0,0,0,0], // y=10
+    [0,0,0,0,0,0,0,0,0,0,0,0]  // y=11
+  ];
+
+  var filled = [];
+  for (var fy = 0; fy < GRID_SIZE; fy++){
+    filled.push(new Array(GRID_SIZE).fill(false));
+  }
+
+  var pos = { x: 0, y: 0 };
+  var cells = {};
+  var lastCursorCell = null;
+  var gameWon = false;
+  var audioCtx = null;
+
+  var gridEl = document.getElementById('grid');
+  var yLabelsEl = document.getElementById('yLabels');
+  var xLabelsEl = document.getElementById('xLabels');
+  var xValEl = document.getElementById('xVal');
+  var yValEl = document.getElementById('yVal');
+  var progressEl = document.getElementById('progressText');
+  var checkBtn = document.getElementById('checkBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var playAgainBtn = document.getElementById('playAgainBtn');
+  var winOverlay = document.getElementById('winOverlay');
+
+  function buildGrid(){
+    gridEl.innerHTML = '';
+    cells = {};
+    for (var row = 0; row < GRID_SIZE; row++){
+      var y = GRID_SIZE - 1 - row; // linha de cima da tela = maior Y
+      for (var x = 0; x < GRID_SIZE; x++){
+        var cell = document.createElement('div');
+        cell.className = 'cell ' + (((x + y) % 2 === 0) ? 'even' : 'odd');
+        cell.dataset.x = x;
+        cell.dataset.y = y;
+        gridEl.appendChild(cell);
+        cells[x + ',' + y] = cell;
+      }
+    }
+  }
+
+  function buildLabels(){
+    yLabelsEl.innerHTML = '';
+    xLabelsEl.innerHTML = '';
+    for (var row = 0; row < GRID_SIZE; row++){
+      var y = GRID_SIZE - 1 - row;
+      var labY = document.createElement('div');
+      labY.className = 'axis-label';
+      labY.textContent = y;
+      yLabelsEl.appendChild(labY);
+    }
+    for (var x = 0; x < GRID_SIZE; x++){
+      var labX = document.createElement('div');
+      labX.className = 'axis-label';
+      labX.textContent = x;
+      xLabelsEl.appendChild(labX);
+    }
+  }
+
+  function renderCellState(x, y){
+    var cell = cells[x + ',' + y];
+    var isTemplate = TEMPLATE[y][x] === 1;
+    var isFilled = filled[y][x];
+    cell.classList.toggle('template', isTemplate);
+    cell.classList.toggle('filled', isFilled);
+  }
+
+  function renderAllCells(){
+    for (var y = 0; y < GRID_SIZE; y++){
+      for (var x = 0; x < GRID_SIZE; x++){
+        renderCellState(x, y);
+      }
+    }
+  }
+
+  function updateCursor(){
+    if (lastCursorCell){ lastCursorCell.classList.remove('cursor'); }
+    var cell = cells[pos.x + ',' + pos.y];
+    cell.classList.add('cursor');
+    lastCursorCell = cell;
+  }
+
+  function updatePositionDisplay(){
+    xValEl.textContent = pos.x;
+    yValEl.textContent = pos.y;
+  }
+
+  function updateProgress(){
+    var total = 0, done = 0;
+    for (var y = 0; y < GRID_SIZE; y++){
+      for (var x = 0; x < GRID_SIZE; x++){
+        if (TEMPLATE[y][x] === 1){
+          total++;
+          if (filled[y][x]) done++;
+        }
+      }
+    }
+    progressEl.textContent = 'Progresso: ' + done + '/' + total + ' células corretas';
+  }
+
+  function renderAll(){
+    renderAllCells();
+    updateCursor();
+    updatePositionDisplay();
+    updateProgress();
+  }
+
+  function getAudioCtx(){
+    if (!audioCtx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      audioCtx = new AC();
+    }
+    if (audioCtx.state === 'suspended'){ audioCtx.resume(); }
+    return audioCtx;
+  }
+
+  function beep(freq, duration, vol){
+    try {
+      var ctx = getAudioCtx();
+      if (!ctx) return;
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      gain.gain.value = vol;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch (e) { /* audio indisponivel, ignora */ }
+  }
+
+  function playVictoryJingle(){
+    var notes = [523, 659, 784, 1046];
+    notes.forEach(function(freq, i){
+      setTimeout(function(){ beep(freq, 0.18, 0.06); }, i * 140);
+    });
+  }
+
+  function move(dx, dy){
+    if (gameWon) return;
+    var nx = Math.min(GRID_SIZE - 1, Math.max(0, pos.x + dx));
+    var ny = Math.min(GRID_SIZE - 1, Math.max(0, pos.y + dy));
+    if (nx === pos.x && ny === pos.y) return;
+    pos.x = nx;
+    pos.y = ny;
+    updateCursor();
+    updatePositionDisplay();
+  }
+
+  function extrude(){
+    if (gameWon) return;
+    filled[pos.y][pos.x] = !filled[pos.y][pos.x];
+    renderCellState(pos.x, pos.y);
+    beep(filled[pos.y][pos.x] ? 220 : 140, 0.07, 0.05);
+    updateProgress();
+    checkWin(false);
+  }
+
+  function checkWin(notifyIfIncomplete){
+    for (var y = 0; y < GRID_SIZE; y++){
+      for (var x = 0; x < GRID_SIZE; x++){
+        var shouldBeFilled = TEMPLATE[y][x] === 1;
+        if (shouldBeFilled !== !!filled[y][x]){
+          if (notifyIfIncomplete){
+            checkBtn.classList.add('shake');
+            setTimeout(function(){ checkBtn.classList.remove('shake'); }, 400);
+          }
+          return false;
+        }
+      }
+    }
+    showWin();
+    return true;
+  }
+
+  function spawnConfetti(){
+    var colors = ['#ff4d9d', '#38e1e6', '#ffd23f', '#52e07a', '#ff8c1a'];
+    for (var i = 0; i < 40; i++){
+      var conf = document.createElement('div');
+      conf.className = 'confetti';
+      conf.style.left = (Math.random() * 100) + '%';
+      conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      conf.style.animationDuration = (2 + Math.random() * 2) + 's';
+      conf.style.animationDelay = (Math.random() * 0.5) + 's';
+      conf.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+      winOverlay.appendChild(conf);
+    }
+  }
+
+  function clearConfetti(){
+    var items = winOverlay.querySelectorAll('.confetti');
+    items.forEach(function(el){ el.remove(); });
+  }
+
+  function showWin(){
+    gameWon = true;
+    winOverlay.classList.add('active');
+    spawnConfetti();
+    playVictoryJingle();
+  }
+
+  function hideWin(){
+    gameWon = false;
+    winOverlay.classList.remove('active');
+    clearConfetti();
+  }
+
+  function resetGame(){
+    filled = [];
+    for (var y = 0; y < GRID_SIZE; y++){
+      filled.push(new Array(GRID_SIZE).fill(false));
+    }
+    pos = { x: 0, y: 0 };
+    hideWin();
+    renderAll();
+  }
+
+  var MOVE_KEYS = ['a', 'd', 'w', 's', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ', 'enter'];
+
+  window.addEventListener('keydown', function(e){
+    var key = e.key;
+    var kl = key.toLowerCase();
+
+    if (MOVE_KEYS.indexOf(kl) !== -1){
+      e.preventDefault();
+    }
+    if (e.repeat) return;
+
+    if (kl === 'a' || kl === 'arrowleft'){ move(-1, 0); }
+    else if (kl === 'd' || kl === 'arrowright'){ move(1, 0); }
+    else if (kl === 'w' || kl === 'arrowup'){ move(0, 1); }
+    else if (kl === 's' || kl === 'arrowdown'){ move(0, -1); }
+    else if (kl === ' ' || kl === 'enter' || kl === 'spacebar'){ extrude(); }
+  }, { passive: false });
+
+  checkBtn.addEventListener('click', function(){ checkWin(true); });
+  resetBtn.addEventListener('click', function(){
+    var ok = window.confirm('Reiniciar a impressão e apagar todo o progresso atual?');
+    if (ok) resetGame();
+  });
+  playAgainBtn.addEventListener('click', resetGame);
+
+  buildGrid();
+  buildLabels();
+  renderAll();
+})();
+</script>
+</body>
+</html>
