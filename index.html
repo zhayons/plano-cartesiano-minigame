@@ -24,8 +24,9 @@
     --cell-a: #efe9ff;
     --cell-b: #ddd2f7;
     --filled: #100b1c;
-    --template: rgba(255, 77, 157, 0.12);
-    --board-size: min(58vmin, 800px);
+    --template: rgba(74, 58, 140, 0.22);
+    --board-size: min(58vmin, 560px);
+    --panel-max-width: 380px;
     --cell-gap: 3px;
     --axis-size: 30px;
   }
@@ -49,12 +50,7 @@
     padding: 18px 14px 40px;
   }
 
-  /* ---------- Cabecalho ---------- */
-  header{
-    text-align:center;
-    max-width: 900px;
-    margin-bottom: 14px;
-  }
+  .hidden{ display:none !important; }
 
   h1{
     font-family: 'Courier New', monospace;
@@ -73,6 +69,90 @@
     line-height: 1.5;
   }
 
+  /* ---------- Tela inicial (menu) ---------- */
+  .start-screen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    min-height: 80vh;
+    text-align:center;
+    padding: 10px 14px;
+  }
+
+  .shape-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 18px;
+    max-width: 760px;
+    width: 100%;
+    margin: 28px auto 0;
+  }
+
+  .shape-card{
+    font-family: inherit;
+    background: var(--panel);
+    border: 3px solid var(--panel-border);
+    border-radius: 12px;
+    padding: 22px 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap: 10px;
+    cursor:pointer;
+    color: var(--text-light);
+    font-weight: 800;
+    font-size: clamp(0.85rem, 2vmin, 1rem);
+    box-shadow: 0 4px 0 rgba(0,0,0,0.35);
+    transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  }
+  .shape-card:hover{ transform: translateY(-4px); border-color: var(--yellow); }
+  .shape-card:active{ transform: translateY(1px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
+  .shape-card small{ color: var(--text-dim); font-weight: 600; }
+  .shape-emoji{ font-size: 2.6rem; line-height:1; }
+  .blank-card{ border-color: var(--green); }
+  .blank-card:hover{ border-color: var(--cyan); }
+
+  /* ---------- Tela do jogo ---------- */
+  .game-screen{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    width:100%;
+  }
+
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content:center;
+    width:100%;
+    max-width: 1180px;
+    margin-bottom: 14px;
+    padding: 10px 16px;
+    background: var(--panel);
+    border: 3px solid var(--panel-border);
+    border-radius: 10px;
+  }
+
+  .shape-label{ font-weight:800; color: var(--yellow); font-size: clamp(0.85rem, 2vmin, 1rem); white-space: nowrap; }
+
+  .mode-hint{
+    font-size: clamp(0.75rem, 1.7vmin, 0.9rem);
+    color: var(--text-dim);
+    flex: 1 1 220px;
+    text-align:center;
+    font-weight: 700;
+  }
+  .mode-hint.hint-design{ color: var(--green); }
+  .mode-hint.hint-print{ color: var(--orange); }
+
+  .size-control{ display:flex; align-items:center; gap:8px; white-space:nowrap; }
+  .size-control label{ font-size: clamp(0.75rem, 1.7vmin, 0.9rem); color: var(--text-dim); }
+  .size-control input[type="range"]{ width: 120px; accent-color: var(--cyan); cursor:pointer; }
+
   /* ---------- Layout principal ---------- */
   main.game-container{
     display:flex;
@@ -81,7 +161,7 @@
     justify-content:center;
     align-items:flex-start;
     width:100%;
-    max-width: 1600px;
+    max-width: 1180px;
   }
 
   section.board-area{
@@ -164,23 +244,21 @@
 
   /* ---------- Painel lateral ---------- */
   aside.info-panel{
-    flex: 1 1 240px;      /* Reduzido de 320px */
-    max-width: 280px;     /* Reduzido de 380px */
+    flex: 1 1 320px;
+    max-width: var(--panel-max-width, 380px);
     display:flex;
     flex-direction:column;
-    gap: 10px;            /* Reduzido de 14px */
+    gap: 14px;
   }
 
   .card{
     background: var(--panel);
     border: 3px solid var(--panel-border);
     border-radius: 10px;
-    padding: 10px 12px;   /* Reduzido de 14px 16px para ganhar espaço vertical */
+    padding: 14px 16px;
   }
 
-  .position-display{
-    text-align:center;
-  }
+  .position-display{ text-align:center; }
   .position-display p{
     margin: 0 0 6px;
     font-size: clamp(0.85rem, 2vmin, 1rem);
@@ -188,39 +266,32 @@
     text-transform: uppercase;
     letter-spacing: 1px;
   }
-  .coords{
-    display:flex;
-    justify-content:center;
-    gap: 18px;
-    flex-wrap: wrap;
-  }
-  .coords span{
-    font-family:'Courier New', monospace;
-    font-size: clamp(1.3rem, 4vmin, 2rem);
-    font-weight: 900;
-  }
+  .coords{ display:flex; justify-content:center; gap: 18px; flex-wrap: wrap; }
+  .coords span{ font-family:'Courier New', monospace; font-size: clamp(1.3rem, 4vmin, 2rem); font-weight: 900; }
   .coord-x{ color: var(--cyan); }
   .coord-y{ color: var(--magenta); }
 
-  .controls{
-    display:flex;
-    flex-direction:column;
-    gap: 10px;
-  }
-  .control-card{
-    border-radius: 8px;
-    padding: 6px 10px;    /* Reduzido de 10px 12px */
-    border: 3px solid;
-  }
-  .control-card h3{
-    margin: 0 0 6px;
+  /* ---------- Instrucoes colapsaveis ---------- */
+  details.instructions-details{ padding: 0; overflow:hidden; }
+  details.instructions-details summary{
+    cursor:pointer;
+    list-style:none;
+    padding: 12px 16px;
+    font-weight: 800;
+    color: var(--yellow);
     font-size: clamp(0.85rem, 2vmin, 1rem);
   }
-  .control-card p{
-    margin: 3px 0;
-    font-size: clamp(0.78rem, 1.8vmin, 0.92rem);
-    color: var(--text-light);
-  }
+  details.instructions-details summary::-webkit-details-marker{ display:none; }
+  details.instructions-details summary::before{ content:'▸ '; }
+  details.instructions-details[open] summary::before{ content:'▾ '; }
+  details.instructions-details[open] summary{ border-bottom: 2px solid var(--panel-border); }
+  details.instructions-details .controls,
+  details.instructions-details .legend{ padding: 12px 16px; }
+
+  .controls{ display:flex; flex-direction:column; gap: 10px; }
+  .control-card{ border-radius: 8px; padding: 10px 12px; border: 3px solid; }
+  .control-card h3{ margin: 0 0 6px; font-size: clamp(0.85rem, 2vmin, 1rem); }
+  .control-card p{ margin: 3px 0; font-size: clamp(0.78rem, 1.8vmin, 0.92rem); color: var(--text-light); }
   .player1{ border-color: var(--cyan); background: rgba(56,225,230,0.08); }
   .player1 h3{ color: var(--cyan); }
   .player2{ border-color: var(--magenta); background: rgba(255,77,157,0.08); }
@@ -241,38 +312,18 @@
     border: 1px solid #b6a9de;
   }
 
-  .legend{
-    display:flex;
-    flex-direction:column;
-    gap: 6px;
-    font-size: clamp(0.78rem, 1.8vmin, 0.9rem);
-  }
+  .legend{ display:flex; flex-direction:column; gap: 6px; font-size: clamp(0.78rem, 1.8vmin, 0.9rem); }
   .legend p{ margin:0; display:flex; align-items:center; gap:8px; }
-  .swatch{
-    display:inline-block;
-    width: 18px;
-    height: 18px;
-    border-radius: 3px;
-    flex-shrink:0;
-    border: 1px solid rgba(255,255,255,0.25);
-  }
+  .swatch{ display:inline-block; width: 18px; height: 18px; border-radius: 3px; flex-shrink:0; border: 1px solid rgba(255,255,255,0.25); }
   .swatch-template{ background: var(--template); }
   .swatch-filled{ background: var(--filled); }
   .swatch-cursor{ background: var(--orange); box-shadow: 0 0 6px 2px rgba(255,140,26,0.8); }
 
-  #progressText{
-    text-align:center;
-    font-weight: 700;
-    color: var(--yellow);
-    font-size: clamp(0.85rem, 2vmin, 1rem);
-  }
+  body.mode-design .template-legend-item{ display:none; }
 
-  .buttons{
-    display:flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content:center;
-  }
+  #progressText{ text-align:center; font-weight: 700; color: var(--yellow); font-size: clamp(0.85rem, 2vmin, 1rem); }
+
+  .buttons{ display:flex; gap: 10px; flex-wrap: wrap; justify-content:center; }
 
   button{
     font-family: inherit;
@@ -287,9 +338,12 @@
     transition: transform 0.08s ease, box-shadow 0.08s ease;
   }
   button:active{ transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.35); }
-  #checkBtn{ background: var(--yellow); box-shadow: 0 4px 0 var(--yellow-dark); }
+  #primaryActionBtn{ background: var(--yellow); box-shadow: 0 4px 0 var(--yellow-dark); }
   #resetBtn{ background: var(--cyan); box-shadow: 0 4px 0 var(--cyan-dark); }
   #playAgainBtn{ background: var(--green); box-shadow: 0 4px 0 var(--green-dark); font-size: clamp(0.9rem, 2vmin, 1.05rem); }
+
+  .ghost-btn{ background: transparent; color: var(--cyan); border: 2px solid var(--cyan); box-shadow:none; }
+  .ghost-btn:active{ box-shadow:none; transform: translateY(2px); }
 
   @keyframes shake{
     0%, 100%{ transform: translateX(0); }
@@ -299,6 +353,17 @@
     80%{ transform: translateX(4px); }
   }
   .shake{ animation: shake 0.4s ease; }
+
+  /* ---------- Layout empilhado (tabuleiro grande) ---------- */
+  main.game-container.stacked{ flex-direction: column; align-items:center; }
+  main.game-container.stacked aside.info-panel{
+    max-width: 100%;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  main.game-container.stacked aside.info-panel > *{ flex: 0 1 260px; }
 
   /* ---------- Tela de vitoria ---------- */
   .win-overlay{
@@ -328,10 +393,7 @@
     box-shadow: 0 0 46px rgba(255,210,63,0.55);
     animation: pop-in 0.4s ease;
   }
-  @keyframes pop-in{
-    from{ transform: scale(0.5); opacity: 0; }
-    to{ transform: scale(1); opacity: 1; }
-  }
+  @keyframes pop-in{ from{ transform: scale(0.5); opacity: 0; } to{ transform: scale(1); opacity: 1; } }
   .win-box h2{
     color: var(--yellow);
     font-size: clamp(1.15rem, 3.4vmin, 1.9rem);
@@ -339,11 +401,7 @@
     margin: 0 0 12px;
     font-family: 'Courier New', monospace;
   }
-  .win-box p{
-    color: var(--text-light);
-    margin: 0 0 22px;
-    font-size: clamp(0.9rem, 2vmin, 1.05rem);
-  }
+  .win-box p{ color: var(--text-light); margin: 0 0 22px; font-size: clamp(0.9rem, 2vmin, 1.05rem); }
 
   .confetti{
     position:absolute;
@@ -355,9 +413,7 @@
     animation-timing-function: linear;
     animation-fill-mode: forwards;
   }
-  @keyframes confetti-fall{
-    to{ transform: translateY(110vh) rotate(var(--rot, 360deg)); opacity: 0.25; }
-  }
+  @keyframes confetti-fall{ to{ transform: translateY(110vh) rotate(var(--rot, 360deg)); opacity: 0.25; } }
 
   footer{
     margin-top: 22px;
@@ -369,78 +425,100 @@
   }
 
   @media (max-width: 680px){
-    :root{ --board-size: min(82vw, 420px); --axis-size: 24px; }
+    :root{ --axis-size: 24px; }
     main.game-container{ flex-direction: column; align-items:center; }
-    aside.info-panel{ max-width: 92vw; width:100%; }
+    aside.info-panel{ max-width: 92vw !important; width:100%; }
   }
 </style>
 </head>
 <body>
 
-  <header>
-    <h1>🖨️ Impressora 3D: Missão Coordenadas</h1>
-    <p class="subtitle">
-      Dois motores, uma missão! Jogador 1 controla o Motor X, Jogador 2 controla o Motor Y.
-      Trabalhem em equipe para levar o bico até cada quadradinho do desenho e apertar
-      <kbd>ENTER</kbd> para depositar o filamento.
-    </p>
-  </header>
+  <div class="start-screen" id="startScreen">
+    <header>
+      <h1>🖨️ Impressora 3D: Missão Coordenadas</h1>
+      <p class="subtitle">
+        Escolham o desenho que a equipe vai imprimir — ou criem o próprio projeto do zero!<br>
+        Dois jogadores, dois motores: um controla o eixo X, o outro o eixo Y.
+      </p>
+    </header>
+    <div class="shape-grid">
+      <button class="shape-card" data-shape="heart"><span class="shape-emoji">❤️</span><span>Coração</span></button>
+      <button class="shape-card" data-shape="robot"><span class="shape-emoji">🤖</span><span>Robô</span></button>
+      <button class="shape-card" data-shape="dino"><span class="shape-emoji">🦖</span><span>Dinossauro</span></button>
+      <button class="shape-card" data-shape="rocket"><span class="shape-emoji">🚀</span><span>Foguete</span></button>
+      <button class="shape-card blank-card" data-shape="blank"><span class="shape-emoji">📝</span><span>Tela em Branco<br><small>(Projetar)</small></span></button>
+    </div>
+  </div>
 
-  <main class="game-container">
-    <section class="board-area">
-      <div class="board-grid-wrapper">
-        <div class="y-labels" id="yLabels"></div>
-        <div class="grid" id="grid"></div>
-        <div class="corner"></div>
-        <div class="x-labels" id="xLabels"></div>
+  <div class="game-screen hidden" id="gameScreen">
+    <div class="toolbar">
+      <button id="menuBtn" class="ghost-btn">🏠 Menu</button>
+      <span class="shape-label" id="shapeLabel"></span>
+      <span class="mode-hint" id="modeHint"></span>
+      <div class="size-control">
+        <label for="sizeSlider">📐 Tamanho do tabuleiro</label>
+        <input type="range" id="sizeSlider" min="0" max="100" value="30">
       </div>
-    </section>
+    </div>
 
-    <aside class="info-panel">
-      <div class="card position-display">
-        <p>Posição do Bico</p>
-        <div class="coords">
-          <span class="coord-x">X = <b id="xVal">0</b></span>
-          <span class="coord-y">Y = <b id="yVal">0</b></span>
+    <main class="game-container" id="gameContainer">
+      <section class="board-area">
+        <div class="board-grid-wrapper">
+          <div class="y-labels" id="yLabels"></div>
+          <div class="grid" id="grid"></div>
+          <div class="corner"></div>
+          <div class="x-labels" id="xLabels"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="controls">
-        <div class="control-card player1">
-          <h3>🔵 Motor X — Jogador 1</h3>
-          <p><kbd>A</kbd> / <kbd>←</kbd> mover para a esquerda</p>
-          <p><kbd>D</kbd> / <kbd>→</kbd> mover para a direita</p>
+      <aside class="info-panel">
+        <div class="card position-display">
+          <p>Posição do Bico</p>
+          <div class="coords">
+            <span class="coord-x">X = <b id="xVal">0</b></span>
+            <span class="coord-y">Y = <b id="yVal">0</b></span>
+          </div>
         </div>
-        <div class="control-card player2">
-          <h3>🟣 Motor Y — Jogador 2</h3>
-          <p><kbd>O</kbd> / <kbd>↑</kbd> mover para cima</p>
-          <p><kbd>L</kbd> / <kbd>↓</kbd> mover para baixo</p>
+
+        <details class="card instructions-details" id="instructionsDetails" open>
+          <summary>Como Jogar (controles e legenda)</summary>
+          <div class="controls">
+            <div class="control-card player1">
+              <h3>🔵 Motor X — Jogador 1</h3>
+              <p><kbd>A</kbd> / <kbd>←</kbd> mover para a esquerda</p>
+              <p><kbd>D</kbd> / <kbd>→</kbd> mover para a direita</p>
+            </div>
+            <div class="control-card player2">
+              <h3>🟣 Motor Y — Jogador 2</h3>
+              <p><kbd>O</kbd> / <kbd>↑</kbd> mover para cima</p>
+              <p><kbd>L</kbd> / <kbd>↓</kbd> mover para baixo</p>
+            </div>
+            <div class="control-card extrude">
+              <h3>🟠 Extrusora</h3>
+              <p><kbd>ENTER</kbd> ou <kbd>ESPAÇO</kbd> deposita ou apaga o filamento</p>
+            </div>
+          </div>
+          <div class="legend">
+            <p class="template-legend-item"><span class="swatch swatch-template"></span> Molde do desenho a seguir</p>
+            <p><span class="swatch swatch-filled"></span> Filamento já depositado</p>
+            <p><span class="swatch swatch-cursor"></span> Bico da impressora (aquecendo)</p>
+          </div>
+        </details>
+
+        <p id="progressText">Progresso: 0/0 células corretas</p>
+
+        <div class="buttons">
+          <button id="primaryActionBtn">✅ Verificar Impressão</button>
+          <button id="resetBtn">🔄 Reiniciar</button>
         </div>
-        <div class="control-card extrude">
-          <h3>🟠 Extrusora</h3>
-          <p><kbd>ENTER</kbd> ou <kbd>ESPAÇO</kbd> deposita ou apaga o filamento</p>
-        </div>
-      </div>
+      </aside>
+    </main>
 
-      <div class="card legend">
-        <p><span class="swatch swatch-template"></span> Molde do desenho a seguir</p>
-        <p><span class="swatch swatch-filled"></span> Filamento já depositado</p>
-        <p><span class="swatch swatch-cursor"></span> Bico da impressora (aquecendo)</p>
-      </div>
-
-      <p id="progressText">Progresso: 0/0 células corretas</p>
-
-      <div class="buttons">
-        <button id="checkBtn">✅ Verificar Impressão</button>
-        <button id="resetBtn">🔄 Reiniciar</button>
-      </div>
-    </aside>
-  </main>
-
-  <footer>
-    Dica para a turma: cada tecla pressionada é como um pulso do motor — um passo de cada vez.
-    Combinem os movimentos para não desperdiçar filamento fora do molde!
-  </footer>
+    <footer>
+      Dica para a turma: cada tecla pressionada é como um pulso do motor — um passo de cada vez.
+      Combinem os movimentos da equipe para posicionar o bico com precisão!
+    </footer>
+  </div>
 
   <div class="win-overlay" id="winOverlay">
     <div class="win-box">
@@ -456,50 +534,125 @@
 
   var GRID_SIZE = 12;
 
-  // Gabarito em pixel art: um coração. 1 = parte do desenho, 0 = vazio.
-  // Indexado por [y][x], onde y = 0 é a linha de baixo da grade.
-  var TEMPLATE = [
-    [0,0,0,0,0,0,0,0,0,0,0,0], // y=0
-    [0,0,0,0,0,0,0,0,0,0,0,0], // y=1
-    [0,0,0,0,0,1,1,0,0,0,0,0], // y=2  (ponta do coracao)
-    [0,0,0,0,1,1,1,1,0,0,0,0], // y=3
-    [0,0,0,1,1,1,1,1,1,0,0,0], // y=4
-    [0,0,1,1,1,1,1,1,1,1,0,0], // y=5
-    [0,1,1,1,1,1,1,1,1,1,1,0], // y=6
-    [0,1,1,1,1,1,1,1,1,1,1,0], // y=7
-    [0,1,1,1,1,0,0,1,1,1,1,0], // y=8  (comeca a abertura de cima)
-    [0,0,1,1,0,0,0,0,1,1,0,0], // y=9  (as duas "corcovas")
-    [0,0,0,0,0,0,0,0,0,0,0,0], // y=10
-    [0,0,0,0,0,0,0,0,0,0,0,0]  // y=11
-  ];
+  // Gabaritos em pixel art. 1 = parte do desenho, 0 = vazio.
+  // Indexado por [y][x], onde y = 0 e a linha de baixo da grade.
+  var SHAPES = {
+    heart: [
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,1,1,0,0,0,0,0],
+      [0,0,0,0,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,1,1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,1,1,1,0,0,1,1,1,1,0],
+      [0,0,1,1,0,0,0,0,1,1,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0]
+    ],
+    robot: [
+      [0,0,0,1,1,0,0,1,1,0,0,0],
+      [0,0,1,1,1,1,1,1,1,1,0,0],
+      [0,0,1,1,1,0,0,1,1,1,0,0],
+      [1,1,1,1,1,1,1,1,1,1,1,1],
+      [0,0,1,1,1,1,1,1,1,1,0,0],
+      [0,0,0,0,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,0,0,1,1,0,0,0],
+      [0,0,0,1,0,1,1,0,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,0,1,1,0,0,0,0,0],
+      [0,0,0,0,0,1,1,0,0,0,0,0]
+    ],
+    dino: [
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,1,1,0,0,0,0,1,1,0,0],
+      [0,0,1,1,0,0,0,0,1,1,0,0],
+      [0,0,1,1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,1,1,0],
+      [1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,0,1,1,1,1,1,1,1,1,1,0],
+      [1,1,1,1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,0,0,0],
+      [0,1,1,1,0,1,1,1,0,0,0,0],
+      [0,0,1,0,0,0,1,0,0,0,0,0]
+    ],
+    rocket: [
+      [0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,1,1,0,0,0,0,0],
+      [0,0,1,0,0,1,1,0,0,1,0,0],
+      [0,1,1,0,1,1,1,1,0,1,1,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,0,0,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,0,0,0,0],
+      [0,0,0,0,0,1,1,0,0,0,0,0]
+    ]
+  };
 
-  var filled = [];
-  for (var fy = 0; fy < GRID_SIZE; fy++){
-    filled.push(new Array(GRID_SIZE).fill(false));
+  var SHAPE_LABELS = {
+    heart: '❤️ Coração',
+    robot: '🤖 Robô',
+    dino: '🦖 Dinossauro',
+    rocket: '🚀 Foguete',
+    blank: '📝 Projeto Livre'
+  };
+
+  function emptyNumericGrid(){
+    var g = [];
+    for (var y = 0; y < GRID_SIZE; y++){ g.push(new Array(GRID_SIZE).fill(0)); }
+    return g;
   }
 
+  function emptyFilledGrid(){
+    var g = [];
+    for (var y = 0; y < GRID_SIZE; y++){ g.push(new Array(GRID_SIZE).fill(false)); }
+    return g;
+  }
+
+  function cloneNumericGrid(src){
+    return src.map(function(row){ return row.slice(); });
+  }
+
+  var TEMPLATE = emptyNumericGrid();
+  var filled = emptyFilledGrid();
   var pos = { x: 0, y: 0 };
+  var mode = 'print';            // 'print' ou 'design'
+  var currentShapeKey = 'heart';
   var cells = {};
   var lastCursorCell = null;
   var gameWon = false;
   var audioCtx = null;
 
+  var startScreen = document.getElementById('startScreen');
+  var gameScreen = document.getElementById('gameScreen');
   var gridEl = document.getElementById('grid');
   var yLabelsEl = document.getElementById('yLabels');
   var xLabelsEl = document.getElementById('xLabels');
   var xValEl = document.getElementById('xVal');
   var yValEl = document.getElementById('yVal');
   var progressEl = document.getElementById('progressText');
-  var checkBtn = document.getElementById('checkBtn');
+  var primaryActionBtn = document.getElementById('primaryActionBtn');
   var resetBtn = document.getElementById('resetBtn');
   var playAgainBtn = document.getElementById('playAgainBtn');
   var winOverlay = document.getElementById('winOverlay');
+  var menuBtn = document.getElementById('menuBtn');
+  var shapeLabelEl = document.getElementById('shapeLabel');
+  var modeHintEl = document.getElementById('modeHint');
+  var sizeSlider = document.getElementById('sizeSlider');
+  var gameContainer = document.getElementById('gameContainer');
+  var instructionsDetails = document.getElementById('instructionsDetails');
 
   function buildGrid(){
     gridEl.innerHTML = '';
     cells = {};
     for (var row = 0; row < GRID_SIZE; row++){
-      var y = GRID_SIZE - 1 - row; // linha de cima da tela = maior Y
+      var y = GRID_SIZE - 1 - row;
       for (var x = 0; x < GRID_SIZE; x++){
         var cell = document.createElement('div');
         cell.className = 'cell ' + (((x + y) % 2 === 0) ? 'even' : 'odd');
@@ -558,12 +711,22 @@
   }
 
   function updateProgress(){
+    if (mode === 'design'){
+      var count = 0;
+      for (var y = 0; y < GRID_SIZE; y++){
+        for (var x = 0; x < GRID_SIZE; x++){
+          if (filled[y][x]) count++;
+        }
+      }
+      progressEl.textContent = 'Modo Projetar: ' + count + ' célula(s) preenchida(s)';
+      return;
+    }
     var total = 0, done = 0;
-    for (var y = 0; y < GRID_SIZE; y++){
-      for (var x = 0; x < GRID_SIZE; x++){
-        if (TEMPLATE[y][x] === 1){
+    for (var y2 = 0; y2 < GRID_SIZE; y2++){
+      for (var x2 = 0; x2 < GRID_SIZE; x2++){
+        if (TEMPLATE[y2][x2] === 1){
           total++;
-          if (filled[y][x]) done++;
+          if (filled[y2][x2]) done++;
         }
       }
     }
@@ -631,13 +794,14 @@
   }
 
   function checkWin(notifyIfIncomplete){
+    if (mode !== 'print') return false;
     for (var y = 0; y < GRID_SIZE; y++){
       for (var x = 0; x < GRID_SIZE; x++){
         var shouldBeFilled = TEMPLATE[y][x] === 1;
         if (shouldBeFilled !== !!filled[y][x]){
           if (notifyIfIncomplete){
-            checkBtn.classList.add('shake');
-            setTimeout(function(){ checkBtn.classList.remove('shake'); }, 400);
+            primaryActionBtn.classList.add('shake');
+            setTimeout(function(){ primaryActionBtn.classList.remove('shake'); }, 400);
           }
           return false;
         }
@@ -680,24 +844,102 @@
   }
 
   function resetGame(){
-    filled = [];
-    for (var y = 0; y < GRID_SIZE; y++){
-      filled.push(new Array(GRID_SIZE).fill(false));
-    }
+    filled = emptyFilledGrid();
     pos = { x: 0, y: 0 };
     hideWin();
     renderAll();
   }
 
+  function updateModeUI(){
+    document.body.classList.toggle('mode-design', mode === 'design');
+    document.body.classList.toggle('mode-print', mode === 'print');
+    primaryActionBtn.textContent = (mode === 'design') ? '🖨️ Finalizar Projeto e Imprimir' : '✅ Verificar Impressão';
+    shapeLabelEl.textContent = SHAPE_LABELS[currentShapeKey] || '';
+    if (mode === 'design'){
+      modeHintEl.textContent = '✏️ Modo Projetar: desenhem livremente. Depois cliquem em "Finalizar Projeto e Imprimir".';
+      modeHintEl.classList.add('hint-design');
+      modeHintEl.classList.remove('hint-print');
+    } else {
+      modeHintEl.textContent = '🖨️ Modo Imprimir: recriem o molde mostrado no tabuleiro.';
+      modeHintEl.classList.add('hint-print');
+      modeHintEl.classList.remove('hint-design');
+    }
+  }
+
+  function startGame(key){
+    currentShapeKey = key;
+    if (key === 'blank'){
+      mode = 'design';
+      TEMPLATE = emptyNumericGrid();
+    } else {
+      mode = 'print';
+      TEMPLATE = cloneNumericGrid(SHAPES[key]);
+    }
+    filled = emptyFilledGrid();
+    pos = { x: 0, y: 0 };
+    hideWin();
+    updateModeUI();
+    renderAll();
+    startScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+  }
+
+  function showStartScreen(){
+    gameScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  }
+
+  function finalizeDesign(){
+    var hasAny = false;
+    for (var y = 0; y < GRID_SIZE && !hasAny; y++){
+      for (var x = 0; x < GRID_SIZE; x++){
+        if (filled[y][x]){ hasAny = true; break; }
+      }
+    }
+    if (!hasAny){
+      alert('Desenhem pelo menos uma célula antes de finalizar o projeto! ✏️');
+      return;
+    }
+    var captured = [];
+    for (var y2 = 0; y2 < GRID_SIZE; y2++){
+      captured.push(filled[y2].map(function(v){ return v ? 1 : 0; }));
+    }
+    TEMPLATE = captured;
+    mode = 'print';
+    filled = emptyFilledGrid();
+    pos = { x: 0, y: 0 };
+    updateModeUI();
+    renderAll();
+  }
+
+  function applyBoardSize(){
+    var v = Number(sizeSlider.value);
+    var vminVal = 45 + (v / 100) * 45;
+    var maxPx = 420 + (v / 100) * 580;
+    document.documentElement.style.setProperty('--board-size', 'min(' + vminVal.toFixed(0) + 'vmin, ' + maxPx.toFixed(0) + 'px)');
+    var panelMax = 380 - (v / 100) * 140;
+    document.documentElement.style.setProperty('--panel-max-width', panelMax.toFixed(0) + 'px');
+    var stacked = v > 62;
+    gameContainer.classList.toggle('stacked', stacked);
+    if (stacked){ instructionsDetails.removeAttribute('open'); }
+  }
+
+  var shapeCards = document.querySelectorAll('.shape-card');
+  shapeCards.forEach(function(card){
+    card.addEventListener('click', function(){ startGame(card.dataset.shape); });
+  });
+
+  menuBtn.addEventListener('click', showStartScreen);
+  sizeSlider.addEventListener('input', applyBoardSize);
+
   var MOVE_KEYS = ['a', 'd', 'o', 'l', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ', 'enter'];
-  
+
   window.addEventListener('keydown', function(e){
+    if (gameScreen.classList.contains('hidden')) return;
     var key = e.key;
     var kl = key.toLowerCase();
 
-    if (MOVE_KEYS.indexOf(kl) !== -1){
-      e.preventDefault();
-    }
+    if (MOVE_KEYS.indexOf(kl) !== -1){ e.preventDefault(); }
     if (e.repeat) return;
 
     if (kl === 'a' || kl === 'arrowleft'){ move(-1, 0); }
@@ -707,16 +949,21 @@
     else if (kl === ' ' || kl === 'enter' || kl === 'spacebar'){ extrude(); }
   }, { passive: false });
 
-  checkBtn.addEventListener('click', function(){ checkWin(true); });
+  primaryActionBtn.addEventListener('click', function(){
+    if (mode === 'design'){ finalizeDesign(); }
+    else { checkWin(true); }
+  });
+
   resetBtn.addEventListener('click', function(){
-    var ok = window.confirm('Reiniciar a impressão e apagar todo o progresso atual?');
+    var ok = window.confirm('Reiniciar e apagar todo o progresso atual?');
     if (ok) resetGame();
   });
+
   playAgainBtn.addEventListener('click', resetGame);
 
   buildGrid();
   buildLabels();
-  renderAll();
+  applyBoardSize();
 })();
 </script>
 </body>
